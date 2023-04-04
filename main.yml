@@ -1,11 +1,38 @@
 ---
-- name: Yum Install Packages
-  yum: name={{item}} state=latest
-  with_items:
-     - wget
+- name: Install Terraform and Vault
+  hosts: all
+  become: true
 
-- name: terraform install
-  unarchive:
-    src: https://releases.hashicorp.com/terraform/0.9.1/terraform_0.9.1_linux_amd64.zip
-    dest: /usr/bin
-    remote_src: True
+  tasks:
+    - name: Install required packages
+      package:
+        name:
+          - unzip
+          - wget
+        state: present
+
+    - name: Download Terraform
+      get_url:
+        url: https://releases.hashicorp.com/terraform/1.0.10/terraform_1.0.10_linux_amd64.zip
+        dest: /tmp/terraform.zip
+
+    - name: Extract Terraform
+      unarchive:
+        src: /tmp/terraform.zip
+        dest: /usr/local/bin/
+        remote_src: true
+        mode: '0755'
+        creates: /usr/local/bin/terraform
+
+    - name: Download Vault
+      get_url:
+        url: https://releases.hashicorp.com/vault/1.7.4/vault_1.7.4_linux_amd64.zip
+        dest: /tmp/vault.zip
+
+    - name: Extract Vault
+      unarchive:
+        src: /tmp/vault.zip
+        dest: /usr/local/bin/
+        remote_src: true
+        mode: '0755'
+        creates: /usr/local/bin/vault
