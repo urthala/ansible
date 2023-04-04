@@ -1,7 +1,0 @@
----
-- name: Deploy Terraform
-  hosts: tag_srv_ansible
-  gather_facts: False
-  become: true
-  roles:
-    - { role: terraform }
