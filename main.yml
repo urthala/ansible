@@ -1,38 +1,59 @@
----
-- name: Install Terraform and Vault
+name: Install Terraform and Vault
   hosts: all
-  become: true
+  become: yes
 
   tasks:
-    - name: Install required packages
-      package:
-        name:
-          - unzip
-          - wget
+    - name: Add HashiCorp GPG key
+      apt_key:
+        url: https://apt.releases.hashicorp.com/gpg
         state: present
 
-    - name: Download Terraform
-      get_url:
-        url: https://releases.hashicorp.com/terraform/1.0.10/terraform_1.0.10_linux_amd64.zip
-        dest: /tmp/terraform.zip
+    - name: Add HashiCorp APT repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+        state: present
 
-    - name: Extract Terraform
-      unarchive:
-        src: /tmp/terraform.zip
-        dest: /usr/local/bin/
-        remote_src: true
-        mode: '0755'
-        creates: /usr/local/bin/terraform
+    - name: Install Terraform
+      apt:
+        name: terraform
+        state: latest
 
-    - name: Download Vault
-      get_url:
-        url: https://releases.hashicorp.com/vault/1.7.4/vault_1.7.4_linux_amd64.zip
-        dest: /tmp/vault.zip
+    - name: Install Vault
+      apt:
+        name: vault
+        state: latest
 
-    - name: Extract Vault
-      unarchive:
-        src: /tmp/vault.zip
-        dest: /usr/local/bin/
-        remote_src: true
-        mode: '0755'
-        creates: /usr/local/bin/vault
+  ansible-playbook install-terraform-vault.yml
+
+
+---
+- name: Example Playbook
+  hosts: all
+
+  vars:
+    command: "s3 ls"
+    key: "region"
+    value: "us-west-2"
+
+  tasks:
+    - name: Run AWS CLI command with key-value pairs
+      include_role:
+        name: aws
+      vars:
+        command: "{{ command }}"
+        key: "{{ key }}"
+        value: "{{ value }}"
+ansible-playbook playbook.yml
+ansible-playbook playbook.yml --extra-vars "key=us-east-1 value=my-bucket-name"
+
+
+---
+- name: Example Role
+  hosts: all
+
+  tasks:
+    - include_tasks: aws_task.yml
+      vars:
+        command: "s3 ls"
+        key: "region"
+        value: "us-west-2"
